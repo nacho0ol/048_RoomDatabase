@@ -10,26 +10,32 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
-class DetailViewModel (
+class DetailViewModel(
     savedStateHandle: SavedStateHandle,
     private val repositoriSiswa: RepositoriSiswa
-) : ViewModel(){
+) : ViewModel() {
 
-    private val idSiswa: Int = checkNotNull(savedStateHandle[DestinasiDetailSiswa.itemIdArg])
+    private val siswaId: Int = checkNotNull(savedStateHandle[DestinasiDetailSiswa.itemIdArg])
 
-    val uiDetailState: StateFlow<DetailSiswaUiState> =
-        repositoriSiswa.getSiswaStream(idSiswa)
+    // Menggunakan nama 'uiState' agar sesuai dengan panggilan di UI
+    val uiState: StateFlow<DetailUiState> =
+        repositoriSiswa.getSiswaStream(siswaId)
             .filterNotNull()
             .map {
-                DetailSiswaUiState(detailSiswa = it.toDetailSiswa())
+                DetailUiState(detailSiswa = it.toDetailSiswa())
             }.stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
-                initialValue = DetailSiswaUiState()
+                initialValue = DetailUiState()
             )
-    suspend fun deleteSiswa(){
-        repositoriSiswa.deleteSiswa(uiDetailState.value.detailSiswa.toSiswa())
+
+    // Menggunakan viewModelScope.launch agar UI tinggal panggil tanpa perlu coroutine scope
+    fun deleteItem() {
+        viewModelScope.launch {
+            repositoriSiswa.deleteSiswa(uiState.value.detailSiswa.toSiswa())
+        }
     }
 
     companion object {
@@ -37,9 +43,7 @@ class DetailViewModel (
     }
 }
 
-/**
- * UI state for ItemDetailsScreen
- */
-data class DetailSiswaUiState(
+// Menggunakan nama 'DetailUiState' agar sesuai dengan UI
+data class DetailUiState(
     val detailSiswa: DetailSiswa = DetailSiswa()
 )
