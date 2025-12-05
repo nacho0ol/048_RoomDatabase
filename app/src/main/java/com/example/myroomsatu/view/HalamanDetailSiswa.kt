@@ -186,7 +186,7 @@ private fun BarisDetailData(
     Row(modifier = modifier) {
         Text(stringResource(labelResID))
         Spacer(modifier = Modifier.weight(1f))
-        Text(text = itemDetail, fontWeight = FontWeight.Bold)
+        Text(text = itemDetail, fontWeight = FontWeight.SemiBold)
     }
 }
 
